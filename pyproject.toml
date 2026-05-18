@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "statdesk-prefect-tools"
+version = "0.1.0"
+description = "Portfolio-shared Prefect deployment automation for the StatDeskAU scraper portfolio: preflight guards, secrets registration, Dokploy env provisioning."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{name = "StatDeskAU"}]
+dependencies = [
+    "click>=8.1",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+prefect = [
+    "prefect>=3",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+]
+
+[project.scripts]
+statdesk-preflight = "statdesk_prefect_tools.preflight.runner:main"
+statdesk-register-github-pat = "statdesk_prefect_tools.secrets.register_github_pat:main"
+# statdesk-provision-worker-env = "statdesk_prefect_tools.dokploy.apply_env:main"  # Phase 4
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/statdesk_prefect_tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
