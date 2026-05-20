@@ -253,6 +253,48 @@ def test_cli_strict_removes_unmanaged_keys(
     assert "UNMANAGED" not in env_dict
 
 
+def test_cli_show_current_bypasses_required_checks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker
+) -> None:
+    """`--show-current` must work even when required env vars are unset.
+
+    This is the canonical first-time smoke-test path: operator has Dokploy
+    auth + composeId, nothing else. They want to see what Dokploy holds
+    before figuring out where to source the rest from.
+    """
+    p = _write_manifest(
+        tmp_path,
+        {
+            "service": {"type": "compose", "compose_id": "abc"},
+            "env": [
+                {"name": "PGHOST", "required": True},
+                {"name": "PGPASSWORD", "required": True, "sensitive": True},
+            ],
+        },
+    )
+    monkeypatch.setenv("DOKPLOY_API_KEY", "k")
+    monkeypatch.delenv("PGHOST", raising=False)
+    monkeypatch.delenv("PGPASSWORD", raising=False)
+
+    mocker.patch(
+        "statdesk_prefect_tools.dokploy.client.DokployClient.get_compose_env",
+        return_value={"PGHOST": "scraperportfoliopg", "PGPASSWORD": "supersecret"},
+    )
+    update = mocker.patch(
+        "statdesk_prefect_tools.dokploy.client.DokployClient.update_compose_env"
+    )
+
+    result = CliRunner().invoke(main, [str(p), "--show-current"])
+    assert result.exit_code == 0, result.output
+    # Non-sensitive value: shown verbatim
+    assert "PGHOST=scraperportfoliopg" in result.output
+    # Sensitive value: masked
+    assert "supersecret" not in result.output
+    assert "PGPASSWORD=" in result.output
+    # No mutation
+    update.assert_not_called()
+
+
 def test_cli_no_changes_path(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker
 ) -> None:
