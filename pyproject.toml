@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "statdesk-prefect-tools"
-version = "0.1.0"
+version = "0.2.0"
 description = "Portfolio-shared Prefect deployment automation for the StatDeskAU scraper portfolio: preflight guards, secrets registration, Dokploy env provisioning."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -28,7 +28,7 @@ dev = [
 [project.scripts]
 statdesk-preflight = "statdesk_prefect_tools.preflight.runner:main"
 statdesk-register-github-pat = "statdesk_prefect_tools.secrets.register_github_pat:main"
-# statdesk-provision-worker-env = "statdesk_prefect_tools.dokploy.apply_env:main"  # Phase 4
+statdesk-provision-worker-env = "statdesk_prefect_tools.dokploy.apply_env:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/statdesk_prefect_tools"]
