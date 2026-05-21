@@ -5,7 +5,7 @@ Reads the GitHub PAT from ``$GITHUB_PAT`` if set (CI-friendly); otherwise prompt
 via ``getpass`` so it never lands in shell history.
 
 Reads ``$PREFECT_API_URL`` and ``$PREFECT_API_AUTH_STRING`` from env (the laptop
-operator exports them from 1Password; CI gets them from GH org-level secrets).
+operator exports them from their secrets manager; CI gets them from GH secrets).
 Falls back to ``https://prefect.statdesk.com.au/api`` for the URL only — never
 hardcodes the auth string.
 
@@ -19,7 +19,7 @@ Usage:
 
     # Laptop
     export PREFECT_API_URL=https://prefect.statdesk.com.au/api
-    export PREFECT_API_AUTH_STRING="admin:..."   # from 1P
+    export PREFECT_API_AUTH_STRING="admin:..."   # from your secrets manager
     statdesk-register-github-pat                  # prompts for PAT
 """
 from __future__ import annotations
@@ -53,8 +53,8 @@ def _ensure_prefect_env() -> None:
     if not os.environ.get("PREFECT_API_AUTH_STRING"):
         click.echo(
             "ERROR: $PREFECT_API_AUTH_STRING is unset. The StatDesk Prefect "
-            "server requires basic auth. Export it from 1Password "
-            "(\"StatDesk Infra\" -> \"Prefect basic auth\") and retry.",
+            "server requires basic auth. Export it from your secrets manager "
+            "(the 'Prefect basic auth' value) and retry.",
             err=True,
         )
         sys.exit(3)

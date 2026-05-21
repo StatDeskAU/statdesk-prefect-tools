@@ -1,8 +1,8 @@
 """Pydantic schema for `portfolio_env.yaml`.
 
-The manifest is keys-and-metadata only -- values stay in 1Password / shell
-env / Dokploy and are resolved at apply-time. Committing values would defeat
-the entire point of having a secrets manager.
+The manifest is keys-and-metadata only -- values stay in the operator's
+secrets manager / shell env / Dokploy and are resolved at apply-time.
+Committing values would defeat the entire point of having a secrets manager.
 """
 from __future__ import annotations
 
