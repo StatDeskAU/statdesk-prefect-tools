@@ -155,12 +155,20 @@ def _diff_lines(
     help="Remove keys present in current Dokploy env but missing from the manifest. "
     "Default: preserve unmanaged keys (safer).",
 )
+@click.option(
+    "--show-current",
+    is_flag=True,
+    help="Read-only: fetch current Dokploy env and print it, then exit. "
+    "Bypasses manifest required-key checks -- useful for the initial smoke "
+    "test before secrets are in place, or for snapshotting Dokploy state.",
+)
 @click.option("--api-key", envvar="DOKPLOY_API_KEY", help="Dokploy API key (or set $DOKPLOY_API_KEY).")
 def main(
     manifest_path: Path,
     do_apply: bool,
     deploy: bool,
     strict: bool,
+    show_current: bool,
     api_key: str,
 ) -> None:
     """Provision a Dokploy compose service's env from a YAML manifest."""
@@ -173,6 +181,19 @@ def main(
         current_env = client.get_compose_env(compose_id)
     except DokployError as exc:
         raise click.ClickException(str(exc))
+
+    if show_current:
+        click.echo(f"Current Dokploy env for compose_id={compose_id}:", err=True)
+        click.echo(f"  {len(current_env)} key(s)", err=True)
+        click.echo("", err=True)
+        for name in sorted(current_env):
+            key = keys_by_name.get(name)
+            click.echo(f"  {name}={_format_value(current_env[name], key)}")
+        unmanaged = [k for k in current_env if k not in keys_by_name]
+        if unmanaged:
+            click.echo("", err=True)
+            click.echo(f"  ({len(unmanaged)} key(s) not declared in manifest: {', '.join(unmanaged)})", err=True)
+        return
 
     desired_env, managed_keys = _build_desired_env(manifest, current_env)
 
